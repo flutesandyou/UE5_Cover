@@ -13,7 +13,7 @@ class COVER_API ACVBaseCharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	ACVBaseCharacter();
+	ACVBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
