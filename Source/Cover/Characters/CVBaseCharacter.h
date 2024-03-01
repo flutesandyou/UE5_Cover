@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "CVBaseCharacter.generated.h"
 
+class UCVBaseCharacterMovementComponent;
+
 UCLASS()
 class COVER_API ACVBaseCharacter : public ACharacter
 {
@@ -19,6 +21,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
+	class UCoverDetectionComponent* CoverDetectionComponent;
+
+	UCVBaseCharacterMovementComponent* CVBaseCharacterMovementComponent;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -26,4 +33,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	FORCEINLINE UCVBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return CVBaseCharacterMovementComponent; }
+
+	virtual void TakeCover();
+	virtual void StartTakeCover();
+
+private:
+	bool bWantsToTakeCover = false;
 };

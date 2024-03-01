@@ -3,6 +3,7 @@
 
 #include "../Characters/CVBaseCharacter.h"
 #include "../Components/MovementComponents/CVBaseCharacterMovementComponent.h"
+#include "../Components/CoverDetectionComponent.h"
 
 // Sets default values
 ACVBaseCharacter::ACVBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -11,6 +12,7 @@ ACVBaseCharacter::ACVBaseCharacter(const FObjectInitializer& ObjectInitializer)
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	CoverDetectionComponent = CreateDefaultSubobject<UCoverDetectionComponent>(TEXT("CoverDetection"));
 }
 
 // Called when the game starts or when spawned
@@ -32,5 +34,22 @@ void ACVBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+void ACVBaseCharacter::TakeCover()
+{
+	bWantsToTakeCover = true;
+	StartTakeCover();
+}
+
+void ACVBaseCharacter::StartTakeCover()
+{
+	if (bWantsToTakeCover == true && !GetBaseCharacterMovementComponent()->IsTakingCover())
+	{
+		FCoverDescription CoverDescription;
+		if (CoverDetectionComponent->DetectCover(CoverDescription))
+		{
+			//TODO activate Taking Cover
+		}
+	}
 }
 
