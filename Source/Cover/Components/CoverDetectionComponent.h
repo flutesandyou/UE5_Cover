@@ -46,6 +46,6 @@ private:
 	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;
 
 public:	
-	bool DetectCover(OUT FCoverDescription& LedgeDescription);
+	bool DetectCover(OUT FCoverDescription& CoverDescription);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

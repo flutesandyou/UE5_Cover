@@ -4,7 +4,39 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
+#include "../Components/MovementComponents/CVBaseCharacterMovementComponent.h"
 #include "CVBaseCharacter.generated.h"
+
+USTRUCT(BlueprintType)
+struct FCoveringSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* CoveringMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UCurveVector* CoveringCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float AnimationCorrectionXY = 65.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float AnimationCorrectionZ = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MaxHeight = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MinHeight = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MaxHeightStartTime = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MinHeightStartTime = 0.5f;
+};
 
 class UCVBaseCharacterMovementComponent;
 
@@ -26,7 +58,16 @@ protected:
 
 	UCVBaseCharacterMovementComponent* CVBaseCharacterMovementComponent;
 
-public:	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering")
+	FCoveringSettings HighCoverSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering")
+	FCoveringSettings LowCoverSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float LowCoverMaxHeight = 125.0f;
+
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -35,10 +76,16 @@ public:
 
 
 	FORCEINLINE UCVBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return CVBaseCharacterMovementComponent; }
+	
+	virtual void MoveRight(float Value);
+	virtual void MoveForward(float Value);
+	virtual void TryCover();
 
-	virtual void TakeCover();
-	virtual void StartTakeCover();
+	void SlideCoverRight(float Value);
 
 private:
-	bool bWantsToTakeCover = false;
+	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
+	FCoveringMovementParameters CoveringParameters;
+
+
 };
