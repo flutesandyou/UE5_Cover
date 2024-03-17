@@ -15,14 +15,17 @@ struct FCoverDescription
 	FVector Location;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cover description")
-	FRotator Rotation;
+	FRotator ForwardRotation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cover description")
-	FVector Normal;
+	FVector ForwardImpactNormal;
+	FVector DownwardImpactNormal;
 
-	FVector DownwardTraceHitResult;
+	FVector ForwardImpactPoint;
+	FVector DownwardImpactPoint;
 
-	UPrimitiveComponent* HitComponent = nullptr;
+	UPrimitiveComponent* ForwardHitComponent = nullptr;
+	UPrimitiveComponent* DownwardHitComponent = nullptr;
+
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -40,7 +43,7 @@ protected:
 	float MaximumCoverHeight = 200.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Detection settings", meta = (UIMin = 0.0f, ClampMin = 0.0f))
-	float ForwardTraceDistance = 100.0f;
+	float ForwardTraceDistance = 200.0f;
 
 private:
 	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;

@@ -6,28 +6,24 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CVBaseCharacterMovementComponent.generated.h"
 
-struct FCoveringMovementParameters
+struct FMovementCoverDescription
 {
-	FVector InitialLocation = FVector::ZeroVector;
-	FRotator InitialRotation = FRotator::ZeroRotator;
-	UPrimitiveComponent* HitComponent = nullptr;
-	FVector TargetLocation = FVector::ZeroVector;
-	FRotator TargetRotation = FRotator::ZeroRotator;
+	UPrimitiveComponent* ForwardHitComponent = nullptr;
+	UPrimitiveComponent* DownwardHitComponent = nullptr;
 
-	FVector InitialAnimationLocation = FVector::ZeroVector;
-	FVector Normal = FVector::ZeroVector;
+	FVector ForwardImpactNormal;
+	FVector DownwardImpactNormal;
 
-	float Duration = 1.0f;
-	float StartTime = 0.0f;
-
-	UCurveVector* CoveringCurve = nullptr;
+	FVector ForwardImpactPoint;
+	FVector DownwardImpactPoint;
 };
 
 UENUM(BlueprintType)
 enum class ECustomMovementMode : uint8
 {
 	CMOVE_None = 0 UMETA(DisplayName = "None"),
-	CMOVE_Covering UMETA(DisplayName = "Covering"),
+	CMOVE_TakeCover UMETA(DisplayName = "Covering"),
+	CMOVE_InCover UMETA(DisplayName = "InCover"),
 	CMOVE_Max UMETA(Hidden)
 };
 
@@ -37,14 +33,17 @@ class COVER_API UCVBaseCharacterMovementComponent : public UCharacterMovementCom
 	GENERATED_BODY()
 
 public:
-	void AttachToCover(const FCoveringMovementParameters& CoveringParameters);
+	void AttachToCover(const FMovementCoverDescription& CoveringParameters);
 	void DetachFromCover();
-	bool IsCovering() const;
+	bool IsTakeCover() const;
+	bool IsInCover() const;
 
 
 protected:
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
-	void PhysCovering(float DeltaTime, int32 Iterations);
+	void PhysTakeCover(float DeltaTime, int32 Iterations);
+
+	void PhysInCover(float DeltaTime, int32 Iterations);
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
 	UPROPERTY(Category = "Character movement: Cover", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
@@ -54,6 +53,7 @@ protected:
 	float CoveringBreakingDeceleration = 2048.0f;
 
 private:
-	FCoveringMovementParameters CurrentCoveringParameters;
+	FMovementCoverDescription CurrentCoverDescription;
 	FTimerHandle CoveringTimer;
+	bool bIsReachedCover = false;
 };

@@ -22,7 +22,7 @@ void UCoverDetectionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& LedgeDescription)
+bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& CoverDescription)
 {
 	UCapsuleComponent* OwnerCapsuleComponent = CachedCharacterOwner->GetCapsuleComponent();
 	// Orig capsule size to fix water case
@@ -72,21 +72,16 @@ bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& LedgeDescripti
 		return false;
 	}
 
-	// 3. Overlap check
-	float OverlapCapsuleRadius = DefaultCapsuleComponent->GetScaledCapsuleRadius();
-	float OverlapCapsuleHalfHeight = DefaultCapsuleComponent->GetScaledCapsuleHalfHeight();
-	float OverlapCapsuleFloorOffset = 2.0f;
-	FVector OverlapLocation = DownwardTraceHitResult.ImpactPoint + (OverlapCapsuleHalfHeight + OverlapCapsuleFloorOffset) * FVector::UpVector;
+	CoverDescription.ForwardRotation = (ForwardTraceHitResult.ImpactNormal * FVector(-1.0f, -1.0f, 0.0f)).ToOrientationRotator();
+	
+	CoverDescription.ForwardHitComponent = ForwardTraceHitResult.GetComponent();
+	CoverDescription.DownwardHitComponent = DownwardTraceHitResult.GetComponent();
 
-	if (CVTraceUtils::OverlapCapsuleAnyByProfile(GetWorld(), OverlapLocation, OverlapCapsuleRadius, OverlapCapsuleHalfHeight, FQuat::Identity, CollisionProfilePawn, QueryParams, bIsDebugEnabled, DrawTime))
-	{
-		return false;
-	}
-	LedgeDescription.HitComponent = DownwardTraceHitResult.GetComponent();
-	LedgeDescription.Location = OverlapLocation;
-	LedgeDescription.Rotation = (ForwardTraceHitResult.ImpactNormal * FVector(-1.0f, -1.0f, 0.0f)).ToOrientationRotator();
-	LedgeDescription.Normal = ForwardTraceHitResult.ImpactNormal;
-	LedgeDescription.DownwardTraceHitResult = DownwardTraceHitResult.ImpactPoint;
+	CoverDescription.ForwardImpactNormal = ForwardTraceHitResult.ImpactNormal;
+	CoverDescription.DownwardImpactNormal = ForwardTraceHitResult.ImpactNormal;
+	
+	CoverDescription.ForwardImpactPoint = ForwardTraceHitResult.ImpactPoint;
+	CoverDescription.DownwardImpactPoint = DownwardTraceHitResult.ImpactPoint;
 
 	return true;
 }

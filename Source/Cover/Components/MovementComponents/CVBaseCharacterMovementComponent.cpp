@@ -6,22 +6,10 @@
 #include "../../Characters/CVBaseCharacter.h"
 #include "Components/CapsuleComponent.h"
 
-void UCVBaseCharacterMovementComponent::AttachToCover(const FCoveringMovementParameters& CoveringParameters)
+void UCVBaseCharacterMovementComponent::AttachToCover(const FMovementCoverDescription& CoveringParameters)
 {
-	CurrentCoveringParameters = CoveringParameters;
-
-	FVector Normal = CurrentCoveringParameters.Normal;
-	FVector UpDirection(0.0f, 0.0f, 1.0f);
-
-	FVector RotationAxis = FVector::CrossProduct(Normal, UpDirection);
-	RotationAxis.Normalize();
-
-	// Convert the rotation axis and angle to a FRotator
-	FRotator Rotation = FRotator(RotationAxis.Rotation());
-	Rotation.Yaw += -90.0f;
-
-	GetCharacterOwner()->SetActorRotation(Rotation);
-	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Covering);
+	CurrentCoverDescription = CoveringParameters;
+	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_TakeCover);
 }
 
 void UCVBaseCharacterMovementComponent::DetachFromCover()
@@ -29,18 +17,28 @@ void UCVBaseCharacterMovementComponent::DetachFromCover()
 	SetMovementMode(MOVE_Walking);
 }
 
-bool UCVBaseCharacterMovementComponent::IsCovering() const
+bool UCVBaseCharacterMovementComponent::IsTakeCover() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Covering;
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_TakeCover;
+}
+
+bool UCVBaseCharacterMovementComponent::IsInCover() const
+{
+    return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_InCover;
 }
 
 void UCVBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 {
 	switch (CustomMovementMode)
 	{
-	case (uint8)ECustomMovementMode::CMOVE_Covering:
+	case (uint8)ECustomMovementMode::CMOVE_TakeCover:
 	{
-		PhysCovering(DeltaTime, Iterations);
+		PhysTakeCover(DeltaTime, Iterations);
+		break;
+	}
+	case (uint8)ECustomMovementMode::CMOVE_InCover:
+	{
+		PhysInCover(DeltaTime, Iterations);
 		break;
 	}
 	default:
@@ -50,42 +48,78 @@ void UCVBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 	Super::PhysCustom(DeltaTime, Iterations);
 }
 
-void UCVBaseCharacterMovementComponent::PhysCovering(float DeltaTime, int32 Iterations)
+void UCVBaseCharacterMovementComponent::PhysTakeCover(float DeltaTime, int32 Iterations)
+{
+    if (!bIsReachedCover)
+    {
+        // Calculate rotation
+        FVector Normal = CurrentCoverDescription.ForwardImpactNormal;
+
+        // Calculate the rotation to align the character with the surface normal
+        FRotator TargetRotation = Normal.Rotation();
+
+        // Ensure the character is rotated correctly by adding a constant offset
+        TargetRotation.Yaw -= 180.0f; // Adjusted to -180.0f
+
+        // Calculate offset amount and location
+        float OffsetAmount = 50.0f;
+        FVector ImpactPoint = CurrentCoverDescription.ForwardImpactPoint;
+        ImpactPoint.Z = GetCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+        FVector TargetPosition = ImpactPoint + (CurrentCoverDescription.ForwardImpactNormal * OffsetAmount);
+
+        // Calculate the delta movement and rotation
+        FVector DeltaPosition = TargetPosition - GetOwner()->GetActorLocation();
+        FRotator DeltaRotation = (TargetRotation - GetOwner()->GetActorRotation()).GetNormalized();
+
+        float CoverMovementSpeed = 200.0f;
+        // Scale the delta movement by DeltaTime to make the movement smooth
+        DeltaPosition.Normalize(); // Normalize the delta position vector to ensure constant speed
+        DeltaPosition *= CoverMovementSpeed * DeltaTime; // Use a constant speed for movement
+
+        float RotationInterpSpeed = 10.0f;
+        // Interpolate between the current rotation and the target rotation
+        FRotator NewRotation = FMath::RInterpTo(GetOwner()->GetActorRotation(), TargetRotation, DeltaTime, RotationInterpSpeed);
+
+        // Apply the delta movement gradually
+        FHitResult HitResult;
+        SafeMoveUpdatedComponent(DeltaPosition, NewRotation, true, HitResult);
+
+        // Check if the character has reached the target position
+        FVector CurrentLocation = GetOwner()->GetActorLocation();
+        float DistanceToTarget = FVector::Distance(CurrentLocation, TargetPosition);
+        float AcceptableDistanceThreshold = 10.0f; // Adjust as needed
+
+        if (DistanceToTarget <= AcceptableDistanceThreshold)
+        {
+            // Character has reached the target position, detach from cover mode
+            bIsReachedCover = true;
+            SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_InCover);
+        }
+    }
+}
+
+
+void UCVBaseCharacterMovementComponent::PhysInCover(float DeltaTime, int32 Iterations)
 {
 	CalcVelocity(DeltaTime, 1.0f, false, CoveringBreakingDeceleration);
 	FVector Delta = Velocity * DeltaTime;
 
 	FHitResult HitResult;
 	SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, HitResult);
-
-	//float ElapsedTime = GetWorld()->GetTimerManager().GetTimerElapsed(CoveringTimer) + CurrentCoveringParameters.StartTime;
-	//FVector CoveringCurveValue = CurrentCoveringParameters.CoveringCurve->GetVectorValue(ElapsedTime);
-
-	//float PositionAlpha = CoveringCurveValue.X;
-	//float XYCorrectionAlpha = CoveringCurveValue.Y;
-	//float ZCorrectionAlpha = CoveringCurveValue.Z;s
-
-	//FVector CorrectedInitialLocation = FMath::Lerp(CurrentCoveringParameters.InitialLocation, CurrentCoveringParameters.InitialAnimationLocation, XYCorrectionAlpha);
-	//CorrectedInitialLocation.Z = FMath::Lerp(CurrentCoveringParameters.InitialLocation.Z, CurrentCoveringParameters.InitialAnimationLocation.Z, ZCorrectionAlpha);
-
-	//FVector NewLocation = FMath::Lerp(CorrectedInitialLocation, CurrentCoveringParameters.TargetLocation, PositionAlpha);
-	//FRotator NewRotation = FMath::Lerp(CurrentCoveringParameters.InitialRotation, CurrentCoveringParameters.TargetRotation, PositionAlpha);
-
-	//NewLocation += CurrentCoveringParameters.HitComponent->GetComponentLocation();
-	//NewRotation += CurrentCoveringParameters.HitComponent->GetComponentRotation();
-
-	//FVector Delta = NewLocation - GetActorLocation();
-
-	//FHitResult HitResult;
-	//SafeMoveUpdatedComponent(Delta, NewRotation, false, HitResult);
 }
 
 void UCVBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
-	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Covering)
+	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_InCover)
 	{
 		ACharacter* DefaultCharacter = CharacterOwner->GetClass()->GetDefaultObject<ACharacter>();
 		CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
 	}
+    if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_TakeCover)
+    {
+        bIsReachedCover = false;
+    }
 }
+
+

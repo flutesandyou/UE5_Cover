@@ -13,5 +13,21 @@ UCLASS()
 class COVER_API UCVAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void NativeBeginPlay() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsCrouching = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsTakeCover = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsInCover = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	float CharSpeed = 0.0f;
+private:
+	TWeakObjectPtr<class ACVBaseCharacter> CachedBaseCharacter;
+
 };

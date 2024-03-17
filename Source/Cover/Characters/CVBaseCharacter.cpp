@@ -37,48 +37,26 @@ void ACVBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 }
 void ACVBaseCharacter::TryCover()
 {
-	if (GetBaseCharacterMovementComponent()->IsCovering())
+	if (GetBaseCharacterMovementComponent()->IsInCover())
 	{
 		GetBaseCharacterMovementComponent()->DetachFromCover();
 	}
-	else if (!GetBaseCharacterMovementComponent()->IsCovering())
+	else if (!GetBaseCharacterMovementComponent()->IsInCover())
 	{
 		FCoverDescription CoverDescription;
 		if (CoverDetectionComponent->DetectCover(CoverDescription))
 		{
 			//TODO activate Taking Cover
+			MovementCoverDescription.ForwardHitComponent = CoverDescription.ForwardHitComponent;
+			MovementCoverDescription.DownwardHitComponent = CoverDescription.DownwardHitComponent;
 
-			CoveringParameters.InitialLocation = GetActorLocation() - CoverDescription.HitComponent->GetComponentLocation();
-			CoveringParameters.InitialRotation = GetActorRotation() - CoverDescription.HitComponent->GetComponentRotation();
-			CoveringParameters.TargetLocation = CoverDescription.Location - CoverDescription.HitComponent->GetComponentLocation();
-			CoveringParameters.TargetRotation = CoverDescription.Rotation - CoverDescription.HitComponent->GetComponentRotation();
-			CoveringParameters.HitComponent = CoverDescription.HitComponent;
-			CoveringParameters.Normal = CoverDescription.Normal;
-			FVector DownwardTraceHitResult = CoverDescription.DownwardTraceHitResult;
+			MovementCoverDescription.ForwardImpactNormal = CoverDescription.ForwardImpactNormal;
+			MovementCoverDescription.DownwardImpactNormal = CoverDescription.ForwardImpactNormal;
 
-			FVector CharacterBottom = GetActorLocation() - GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * FVector::UpVector;
+			MovementCoverDescription.ForwardImpactPoint = CoverDescription.ForwardImpactPoint;
 
-			float CoveringHeight = DownwardTraceHitResult.Z - CharacterBottom.Z;
-			const FCoveringSettings& CoveringSettings = GetCoveringSettings(CoveringHeight);
-
-			float MinRange;
-			float MaxRange;
-			CoveringSettings.CoveringCurve->GetTimeRange(MinRange, MaxRange);
-
-			CoveringParameters.Duration = MaxRange - MinRange;
-			CoveringParameters.CoveringCurve = CoveringSettings.CoveringCurve;
-
-			FVector2D SourceRange(CoveringSettings.MinHeight, CoveringSettings.MaxHeight);
-			FVector2D TargetRange(CoveringSettings.MinHeightStartTime, CoveringSettings.MaxHeightStartTime);
-			CoveringParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, CoveringHeight);
-
-			CoveringParameters.InitialAnimationLocation = CoveringParameters.TargetLocation - CoveringSettings.AnimationCorrectionZ * FVector::UpVector + CoveringSettings.AnimationCorrectionXY * CoverDescription.Normal;
-
-			GetBaseCharacterMovementComponent()->AttachToCover(CoveringParameters);
-
-			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-			AnimInstance->Montage_Play(CoveringSettings.CoveringMontage, 1.0f, EMontagePlayReturnType::Duration, CoveringParameters.StartTime);
-
+			MovementCoverDescription.DownwardImpactPoint = CoverDescription.DownwardImpactPoint;
+			GetBaseCharacterMovementComponent()->AttachToCover(MovementCoverDescription);
 		}		
 	}
 	return;
@@ -95,16 +73,16 @@ const FCoveringSettings& ACVBaseCharacter::GetCoveringSettings(float CoverHeight
 
 void ACVBaseCharacter::MoveRight(float Value)
 {
-	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || !CVBaseCharacterMovementComponent->IsCovering() && !FMath::IsNearlyZero(Value, 1e-6f))
+	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || !CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
 		AddMovementInput(RightVector, Value);
 	}
-	if (GetBaseCharacterMovementComponent()->IsCovering() && !FMath::IsNearlyZero(Value))
+	if (GetBaseCharacterMovementComponent()->IsInCover() && !FMath::IsNearlyZero(Value))
 	{
 		// Calculate the direction along the cover surface
-		FVector CharacterToNormal = FVector::CrossProduct(CoveringParameters.Normal, GetActorUpVector()).GetSafeNormal2D();
+		FVector CharacterToNormal = FVector::CrossProduct(MovementCoverDescription.ForwardImpactNormal, GetActorUpVector()).GetSafeNormal2D();
 
 		// Calculate the dot product between character's right vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(GetActorRightVector(), CharacterToNormal);
@@ -125,17 +103,17 @@ void ACVBaseCharacter::MoveRight(float Value)
 
 void ACVBaseCharacter::MoveForward(float Value)
 {
-	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || !CVBaseCharacterMovementComponent->IsCovering() && !FMath::IsNearlyZero(Value, 1e-6f))
+	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || !CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector ForwardVector = YawRotator.RotateVector(FVector::ForwardVector);
 		AddMovementInput(ForwardVector, Value);
 		//AddMovementInput(GetActorForwardVector(), Value);
 	}
-	else if (CVBaseCharacterMovementComponent->IsCovering())
+	else if (CVBaseCharacterMovementComponent->IsInCover())
 	{
 		// If character is covering, move along CharacterToNormal
-		FVector CharacterToNormal = FVector::CrossProduct(CoveringParameters.Normal, GetActorUpVector());
+		FVector CharacterToNormal = FVector::CrossProduct(MovementCoverDescription.ForwardImpactNormal, GetActorUpVector());
 
 		// Calculate the dot product between character's forward vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(GetActorForwardVector(), CharacterToNormal.GetSafeNormal2D());

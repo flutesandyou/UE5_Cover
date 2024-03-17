@@ -12,30 +12,6 @@ USTRUCT(BlueprintType)
 struct FCoveringSettings
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UAnimMontage* CoveringMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UCurveVector* CoveringCurve;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float AnimationCorrectionXY = 65.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float AnimationCorrectionZ = 200.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float MaxHeight = 200.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float MinHeight = 100.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float MaxHeightStartTime = 0.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.0f, UIMin = 0.0f))
-	float MinHeightStartTime = 0.5f;
 };
 
 class UCVBaseCharacterMovementComponent;
@@ -85,7 +61,7 @@ public:
 
 private:
 	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
-	FCoveringMovementParameters CoveringParameters;
+	FMovementCoverDescription MovementCoverDescription;
 
 
 };
