@@ -36,9 +36,9 @@ public:
 	void AttachToCover(const FMovementCoverDescription& CoveringParameters);
 	void DetachFromCover();
 	bool IsTakeCover() const;
-	FORCEINLINE bool IsLowCover() const { return bIsLowCover; }
 	bool IsInCover() const;
-	virtual float GetMaxSpeed() const override;
+	bool IsLowCover() const { return bIsLowCover; }
+
 
 protected:
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
@@ -53,13 +53,9 @@ protected:
 	UPROPERTY(Category = "Character Movement: Cover", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
 	float CoveringBreakingDeceleration = 2048.0f;
 
-	UPROPERTY(Category = "Character Movement: Cover", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0"))
-	float InCoverSpeed = 150.0f;
-
 private:
 	FMovementCoverDescription CurrentCoverDescription;
 	FTimerHandle CoveringTimer;
 	bool bIsReachedCover = false;
 	bool bIsLowCover = false;
-	bool bIsInCover = false;
 };

@@ -9,10 +9,8 @@
 void UCVBaseCharacterMovementComponent::AttachToCover(const FMovementCoverDescription& CoveringParameters)
 {
 	CurrentCoverDescription = CoveringParameters;
-    // Get the character's location
-    FVector CharacterLocation = GetOwner()->GetActorLocation();
 
-    float MiddleHeight = GetCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + CharacterLocation.Z;
+    float MiddleHeight = GetCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 2.0f;
     if (CurrentCoverDescription.DownwardImpactPoint.Z < MiddleHeight)
     {
         bIsLowCover = true;
@@ -76,7 +74,7 @@ void UCVBaseCharacterMovementComponent::PhysTakeCover(float DeltaTime, int32 Ite
         // Calculate offset amount and location
         float OffsetAmount = 50.0f;
         FVector ImpactPoint = CurrentCoverDescription.ForwardImpactPoint;
-        ImpactPoint.Z = GetCharacterOwner()->GetCapsuleComponent()->GetComponentLocation().Z;
+        ImpactPoint.Z = GetCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
         FVector TargetPosition = ImpactPoint + (CurrentCoverDescription.ForwardImpactNormal * OffsetAmount);
 
         // Calculate the delta movement and rotation
@@ -134,12 +132,4 @@ void UCVBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
     }
 }
 
-float UCVBaseCharacterMovementComponent::GetMaxSpeed() const
-{
-    float Result = Super::GetMaxSpeed();
-    if (bIsInCover)
-    {
-        Result = InCoverSpeed;
-    }
-    return Result;
-}
+

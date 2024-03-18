@@ -37,7 +37,7 @@ void ACVBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 }
 void ACVBaseCharacter::TryCover()
 {
-	if (GetBaseCharacterMovementComponent()->IsInCover() || GetBaseCharacterMovementComponent()->IsTakeCover())
+	if (GetBaseCharacterMovementComponent()->IsInCover())
 	{
 		GetBaseCharacterMovementComponent()->DetachFromCover();
 	}
