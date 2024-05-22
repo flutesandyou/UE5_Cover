@@ -26,5 +26,5 @@ void UCVAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsTakeCover = CharacterMovement->IsTakeCover();
 	bIsInCover = CharacterMovement->IsInCover();
-	bIsLowCover = CharacterMovement->IsLowCover();
+	bIsInLowCover = CharacterMovement->IsInLowCover();
 }

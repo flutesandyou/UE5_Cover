@@ -23,7 +23,6 @@ enum class ECustomMovementMode : uint8
 {
 	CMOVE_None = 0 UMETA(DisplayName = "None"),
 	CMOVE_TakeCover UMETA(DisplayName = "Covering"),
-	CMOVE_InCover UMETA(DisplayName = "InCover"),
 	CMOVE_Max UMETA(Hidden)
 };
 
@@ -36,14 +35,13 @@ public:
 	void AttachToCover(const FMovementCoverDescription& CoveringParameters);
 	void DetachFromCover();
 	bool IsTakeCover() const;
-	FORCEINLINE bool IsLowCover() const { return bIsLowCover; }
+	FORCEINLINE bool IsInLowCover() const { return bIsInLowCover; }
 	bool IsInCover() const;
 	virtual float GetMaxSpeed() const override;
 
 protected:
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 	void PhysTakeCover(float DeltaTime, int32 Iterations);
-
 	void PhysInCover(float DeltaTime, int32 Iterations);
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
@@ -59,7 +57,11 @@ protected:
 private:
 	FMovementCoverDescription CurrentCoverDescription;
 	FTimerHandle CoveringTimer;
-	bool bIsReachedCover = false;
-	bool bIsLowCover = false;
+	bool bIsInLowCover = false;
 	bool bIsInCover = false;
+
+private:
+	float CoverStartTime;
+	float CoverDuration;
+	bool bIsCoverTimerStarted;
 };

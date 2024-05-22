@@ -4,6 +4,7 @@
 /DerivedDataCache
 /.vs
 /Platforms
+/enc_temp_folder
 
 *.vsconfig
 *.sln

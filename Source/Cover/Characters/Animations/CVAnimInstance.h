@@ -26,7 +26,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsInCover = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsLowCover = false;
+	bool bIsInLowCover = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	float CharSpeed = 0.0f;
 

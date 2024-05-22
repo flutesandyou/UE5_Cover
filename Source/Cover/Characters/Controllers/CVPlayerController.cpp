@@ -14,8 +14,8 @@ void ACVPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	InputComponent->BindAction("TakeCover", EInputEvent::IE_Pressed, this, &ACVPlayerController::TakeCover);
 	InputComponent->BindAxis("MoveForward/Backwards", this, &ACVPlayerController::MoveForward);
-	InputComponent->BindAxis("MoveRight/Left", this, &ACVPlayerController::MoveRight);
 	InputComponent->BindAxis("SlideCoverRight", this, &ACVPlayerController::SlideCoverRight);
+	InputComponent->BindAxis("MoveRight/Left", this, &ACVPlayerController::MoveRight);
 }
 
 void ACVPlayerController::MoveForward(float Value)

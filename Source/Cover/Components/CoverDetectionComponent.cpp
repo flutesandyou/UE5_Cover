@@ -8,6 +8,7 @@
 #include "../Subsystems/DebugSubsystem.h"
 #include "../CoverTypes.h"
 #include "../Utils/CVTraceUtils.h"
+#include "../Characters/CVBaseCharacter.h"
 
 void UCoverDetectionComponent::BeginPlay()
 {
@@ -84,4 +85,26 @@ bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& CoverDescripti
 	CoverDescription.DownwardImpactPoint = DownwardTraceHitResult.ImpactPoint;
 
 	return true;
+}
+
+void UCoverDetectionComponent::UpdateCover()
+{
+	FHitResult HitResult;
+	
+	FVector LineTraceDirection = CachedCharacterOwner->GetActorForwardVector();
+
+	float LineTraceLength = 100.0f;
+
+	FVector StartPosition = CachedCharacterOwner->GetActorLocation();
+	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
+
+	FCollisionQueryParams QueryParams;
+	AActor* CharacterActor = CachedCharacterOwner.Get();
+	QueryParams.AddIgnoredActor(CharacterActor);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility, QueryParams))
+	{
+		FVector HitNormal = HitResult.ImpactNormal;
+		FVector Direction = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
+	}
 }
