@@ -62,6 +62,4 @@ public:
 private:
 	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
 	FMovementCoverDescription MovementCoverDescription;
-
-
 };

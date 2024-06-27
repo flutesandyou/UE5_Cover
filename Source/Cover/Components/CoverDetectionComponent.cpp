@@ -87,7 +87,7 @@ bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& CoverDescripti
 	return true;
 }
 
-void UCoverDetectionComponent::UpdateCover()
+bool UCoverDetectionComponent::UpdateCover(FName MoveDirection)
 {
 	FHitResult HitResult;
 	
@@ -96,15 +96,41 @@ void UCoverDetectionComponent::UpdateCover()
 	float LineTraceLength = 100.0f;
 
 	FVector StartPosition = CachedCharacterOwner->GetActorLocation();
+	
+	if (MoveDirection == FName("Right"))
+	{
+		StartPosition.Y -= 40.0f;
+	}
+	else if (MoveDirection == FName("Left"))
+	{
+		StartPosition.Y += 40.0f;
+	}
+	else
+	{
+		StartPosition.Y = 0.0f;
+	}
+	
 	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
 
 	FCollisionQueryParams QueryParams;
 	AActor* CharacterActor = CachedCharacterOwner.Get();
 	QueryParams.AddIgnoredActor(CharacterActor);
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility, QueryParams))
+#if ENABLE_DRAW_DEBUG
+	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+	bool bIsDebugEnabled = DebugSubsystem->IsCategoryEnabled(DebugCategoryCoverDetection);
+#else
+	bool bIsDebugEnabled = false;
+#endif
+	float DrawTime = 2.0f;
+
+	if (!CVTraceUtils::CastLineTraceSingleByChannel(GetWorld(), HitResult, StartPosition, EndPosition, ECC_Covering, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
 	{
-		FVector HitNormal = HitResult.ImpactNormal;
-		FVector Direction = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
+		return false;
 	}
+
+	FVector HitNormal = HitResult.ImpactNormal;
+	FVector Direction = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
+
+	return true;
 }

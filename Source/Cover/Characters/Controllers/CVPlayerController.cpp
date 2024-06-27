@@ -14,7 +14,6 @@ void ACVPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	InputComponent->BindAction("TakeCover", EInputEvent::IE_Pressed, this, &ACVPlayerController::TakeCover);
 	InputComponent->BindAxis("MoveForward/Backwards", this, &ACVPlayerController::MoveForward);
-	InputComponent->BindAxis("SlideCoverRight", this, &ACVPlayerController::SlideCoverRight);
 	InputComponent->BindAxis("MoveRight/Left", this, &ACVPlayerController::MoveRight);
 }
 
@@ -37,13 +36,5 @@ void ACVPlayerController::TakeCover()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->TryCover();
-	}
-}
-
-void ACVPlayerController::SlideCoverRight(float Value)
-{
-	if (CachedBaseCharacter.IsValid())
-	{
-		CachedBaseCharacter->SlideCoverRight(Value);
 	}
 }

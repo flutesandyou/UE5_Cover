@@ -51,5 +51,5 @@ private:
 public:	
 	bool DetectCover(OUT FCoverDescription& CoverDescription);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
-	void UpdateCover();
+	bool UpdateCover(FName MoveDirection);
 };

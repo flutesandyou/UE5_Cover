@@ -25,7 +25,6 @@ private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TakeCover();
-	void SlideCoverRight(float Value);
 
 	TSoftObjectPtr<ACVBaseCharacter> CachedBaseCharacter;
 };

@@ -33,7 +33,6 @@ void ACVBaseCharacter::Tick(float DeltaTime)
 		FRotator Rotation = FRotationMatrix::MakeFromX(MovementCoverDescription.ForwardImpactNormal).Rotator();
 		Rotation.Yaw -= 180.0f; // Adjusted to -180.0f
 		SetActorRotation(Rotation);
-		CoverDetectionComponent->UpdateCover();
 	}
 }
 
@@ -70,8 +69,20 @@ void ACVBaseCharacter::TryCover()
 	return;
 }
 
-void ACVBaseCharacter::SlideCoverRight(float Value)
+const FCoveringSettings& ACVBaseCharacter::GetCoveringSettings(float CoverHeight) const
 {
+	return CoverHeight > LowCoverMaxHeight ? HighCoverSettings : LowCoverSettings;
+}
+
+void ACVBaseCharacter::MoveRight(float Value)
+{
+	if (GetCharacterMovement()->IsMovingOnGround() && !GetBaseCharacterMovementComponent()->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f) || GetCharacterMovement()->IsFalling())
+	{
+		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
+		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
+		AddMovementInput(RightVector, Value);
+	}
+
 	if (GetBaseCharacterMovementComponent()->IsInCover() && !FMath::IsNearlyZero(Value))
 	{
 		// Calculate the direction along the cover surface
@@ -82,6 +93,26 @@ void ACVBaseCharacter::SlideCoverRight(float Value)
 
 		// Calculate the dot product between character's right vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(CharacterRight, CharacterToNormal);
+
+		if (Value > 0.0f)
+		{
+			if (!CoverDetectionComponent->UpdateCover("Right"))
+			{
+				// If TraceBool is false and Value is positive, set Value to 0
+				Value = 0.0f;
+			}
+		}
+
+
+		if (Value < 0.0f)
+		{
+			if (!CoverDetectionComponent->UpdateCover("Left"))
+			{
+				// If TraceBool is false and Value is positive, set Value to 0
+				Value = 0.0f;
+			}
+		}
+
 
 		// Adjust the movement direction based on the dot product
 		if (DotProduct > 0)
@@ -97,31 +128,16 @@ void ACVBaseCharacter::SlideCoverRight(float Value)
 	}
 }
 
-const FCoveringSettings& ACVBaseCharacter::GetCoveringSettings(float CoverHeight) const
-{
-	return CoverHeight > LowCoverMaxHeight ? HighCoverSettings : LowCoverSettings;
-}
-
-void ACVBaseCharacter::MoveRight(float Value)
-{
-	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f))
-	{
-		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
-		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
-		AddMovementInput(RightVector, Value);
-	}
-}
-
 void ACVBaseCharacter::MoveForward(float Value)
 {
-	if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() || !CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f))
+	if (GetCharacterMovement()->IsMovingOnGround() && !CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f) || GetCharacterMovement()->IsFalling())
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector ForwardVector = YawRotator.RotateVector(FVector::ForwardVector);
 		AddMovementInput(ForwardVector, Value);
 		//AddMovementInput(GetActorForwardVector(), Value);
 	}
-	else if (CVBaseCharacterMovementComponent->IsInCover())
+	if (CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value))
 	{
 		// If character is covering, move along CharacterToNormal
 		FVector CharacterToNormal = FVector::CrossProduct(MovementCoverDescription.ForwardImpactNormal, GetActorUpVector());
@@ -133,12 +149,12 @@ void ACVBaseCharacter::MoveForward(float Value)
 		if (DotProduct < 0)
 		{
 			// If character is facing away from CharacterToNormal direction, move backward
-			AddMovementInput(CharacterToNormal, -Value);
+			AddMovementInput(CharacterToNormal, Value);
 		}
 		else
 		{
 			// If character is facing towards CharacterToNormal direction, move forward
-			AddMovementInput(CharacterToNormal, Value);
+			AddMovementInput(CharacterToNormal, -Value);
 		}
 	}
 }

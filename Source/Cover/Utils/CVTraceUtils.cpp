@@ -41,12 +41,32 @@ bool CVTraceUtils::SweepSphereSingleByChannel(const UWorld* World, FHitResult& O
 
 		DrawDebugCapsule(World, DrawDebugCapsuleLocation, DrawDebugCapsuleHalfHeight, SphereRadius, DebugCapsuleRotation, TraceColor, false, DrawTime);
 
-		if (bDrawDebug)
+		if (bResult)
 		{
 			DrawDebugSphere(World, OutHit.Location, SphereRadius, 16, HitColor, false, DrawTime);
 			DrawDebugPoint(World, OutHit.ImpactPoint, 10.0f, HitColor, false, DrawTime);
 		}
 	}
+#endif
+
+	return bResult;
+}
+
+bool CVTraceUtils::CastLineTraceSingleByChannel(const UWorld* World, FHitResult& OutHit, const FVector& Start, const FVector& End, ECollisionChannel TraceChannel, const FCollisionQueryParams& Params, const FCollisionResponseParams& ResponseParam, bool bDrawDebug, float DrawTime, FColor TraceColor)
+{
+	bool bResult = false;
+
+	bResult = World->LineTraceSingleByChannel(OutHit, Start, End, TraceChannel, Params, ResponseParam);
+
+#if ENABLE_DRAW_DEBUG
+	if (bDrawDebug)
+	{
+		if (bResult)
+		{
+			DrawDebugLine(World, Start, End, TraceColor, false, DrawTime);
+		}
+	}
+
 #endif
 
 	return bResult;

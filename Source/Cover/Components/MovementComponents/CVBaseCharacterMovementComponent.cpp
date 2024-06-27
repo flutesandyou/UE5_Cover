@@ -12,8 +12,9 @@ void UCVBaseCharacterMovementComponent::AttachToCover(const FMovementCoverDescri
 	CurrentCoverDescription = CoveringParameters;
     // Get the character's location
     FVector CharacterLocation = GetOwner()->GetActorLocation();
+    
 
-    float MiddleHeight = GetCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + CharacterLocation.Z;
+    float MiddleHeight = CrouchedHalfHeight * 2.5f;
     if (CurrentCoverDescription.DownwardImpactPoint.Z < MiddleHeight)
     {
         bIsInLowCover = true;
