@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering", meta = (ClampMin = 0.0f, UIMin = 0.0f))
 	float LowCoverMaxHeight = 125.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering")
+	bool IsCovering = false;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

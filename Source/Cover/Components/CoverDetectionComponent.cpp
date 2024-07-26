@@ -87,7 +87,8 @@ bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& CoverDescripti
 	return true;
 }
 
-bool UCoverDetectionComponent::UpdateCover(FName MoveDirection)
+
+bool UCoverDetectionComponent::UpdateCover(const FName& MoveDirection, OUT FUpdateCoverDescription& UpdateCoverDescription)
 {
 	FHitResult HitResult;
 	
@@ -105,16 +106,11 @@ bool UCoverDetectionComponent::UpdateCover(FName MoveDirection)
 	{
 		StartPosition.Y += 40.0f;
 	}
-	else
-	{
-		StartPosition.Y = 0.0f;
-	}
 	
 	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
 
 	FCollisionQueryParams QueryParams;
-	AActor* CharacterActor = CachedCharacterOwner.Get();
-	QueryParams.AddIgnoredActor(CharacterActor);
+	QueryParams.AddIgnoredActor(GetOwner());
 
 #if ENABLE_DRAW_DEBUG
 	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
@@ -129,8 +125,9 @@ bool UCoverDetectionComponent::UpdateCover(FName MoveDirection)
 		return false;
 	}
 
-	FVector HitNormal = HitResult.ImpactNormal;
-	FVector Direction = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
+	UpdateCoverDescription.HitResult = HitResult;
+	UpdateCoverDescription.HitNormal = HitResult.ImpactNormal;
+	UpdateCoverDescription.Direction = FVector::CrossProduct(UpdateCoverDescription.HitNormal, FVector::UpVector).GetSafeNormal2D();
 
 	return true;
 }

@@ -7,6 +7,15 @@
 #include "CoverDetectionComponent.generated.h"
 
 USTRUCT(BlueprintType)
+struct FUpdateCoverDescription
+{
+	GENERATED_BODY()
+	FVector HitNormal;
+	FVector Direction;
+	FHitResult HitResult;
+};
+
+USTRUCT(BlueprintType)
 struct FCoverDescription
 {
 	GENERATED_BODY()
@@ -51,5 +60,5 @@ private:
 public:	
 	bool DetectCover(OUT FCoverDescription& CoverDescription);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
-	bool UpdateCover(FName MoveDirection);
+	bool UpdateCover(const FName& MoveDirection, OUT FUpdateCoverDescription& UpdateCoverDescription);
 };

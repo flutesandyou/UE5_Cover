@@ -28,11 +28,14 @@ void ACVBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetBaseCharacterMovementComponent()->IsInCover())
+	if (CVBaseCharacterMovementComponent->IsInCover())
 	{
-		FRotator Rotation = FRotationMatrix::MakeFromX(MovementCoverDescription.ForwardImpactNormal).Rotator();
-		Rotation.Yaw -= 180.0f; // Adjusted to -180.0f
-		SetActorRotation(Rotation);
+		IsCovering = true;
+		//CVBaseCharacterMovementComponent->bOrientRotationToMovement = true;
+	}
+	else if (!CVBaseCharacterMovementComponent->IsInCover())
+	{
+		IsCovering = false;
 	}
 }
 
@@ -89,27 +92,38 @@ void ACVBaseCharacter::MoveRight(float Value)
 		FVector CharacterToNormal = FVector::CrossProduct(MovementCoverDescription.ForwardImpactNormal, GetActorUpVector()).GetSafeNormal2D();
 
 		// Get the character's right vector
-		FVector CharacterRight = GetActorRightVector();
+		FVector CharacterRight = GetActorRightVector(); 
 
 		// Calculate the dot product between character's right vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(CharacterRight, CharacterToNormal);
 
+		FUpdateCoverDescription UpdateCoverDescription;
+		FUpdateCoverDescription CenterUpdateCoverDescription;
+
 		if (Value > 0.0f)
 		{
-			if (!CoverDetectionComponent->UpdateCover("Right"))
+			if (!CoverDetectionComponent->UpdateCover(FName("Right"), UpdateCoverDescription))	
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
 				Value = 0.0f;
+			}
+			if (CoverDetectionComponent->UpdateCover(FName("Center"), CenterUpdateCoverDescription))
+			{
+				GetBaseCharacterMovementComponent()->AddInputVector(CenterUpdateCoverDescription.Direction, false);
 			}
 		}
 
 
 		if (Value < 0.0f)
 		{
-			if (!CoverDetectionComponent->UpdateCover("Left"))
+			if (!CoverDetectionComponent->UpdateCover(FName("Left"), UpdateCoverDescription))
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
 				Value = 0.0f;
+			}
+			if (CoverDetectionComponent->UpdateCover(FName("Center"), CenterUpdateCoverDescription))
+			{
+				GetBaseCharacterMovementComponent()->AddInputVector(-CenterUpdateCoverDescription.Direction, false);
 			}
 		}
 
@@ -118,18 +132,38 @@ void ACVBaseCharacter::MoveRight(float Value)
 		if (DotProduct > 0)
 		{
 			// If character's right vector aligns with the cover surface direction, move right along the cover surface
-			AddMovementInput(CharacterToNormal, Value);
+			if (Value > 0.0f)
+			{
+				//GetBaseCharacterMovementComponent()->AddInputVector(CenterUpdateCoverDescription.Direction, false);
+			}
+			else if (Value < 0.0f)
+			{
+				//GetBaseCharacterMovementComponent()->AddInputVector(-CenterUpdateCoverDescription.Direction, false);
+			}
 		}
 		else
 		{
 			// If character's right vector aligns opposite to the cover surface direction, move left along the cover surface
-			AddMovementInput(CharacterToNormal, -Value);
+			//GetBaseCharacterMovementComponent()->AddInputVector(UpdateCoverDescription.Direction, false);
+
 		}
+
+		FRotator CurrentRotation = GetActorRotation();
+		//FRotator CurrentRotation = GetActorForwardVector().ToOrientationRotator();
+
+		FRotator TargetRotation = FRotationMatrix::MakeFromX(CenterUpdateCoverDescription.HitNormal).Rotator();
+		TargetRotation.Yaw -= 180.0f;
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+		float InterpSpeed = 10.0f; // Adjust this value for smoother or faster interpolation
+
+		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, InterpSpeed);
+		SetActorRotation(NewRotation);
 	}
 }
 
 void ACVBaseCharacter::MoveForward(float Value)
 {
+	FUpdateCoverDescription CenterUpdateCoverDescription;
 	if (GetCharacterMovement()->IsMovingOnGround() && !CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value, 1e-6f) || GetCharacterMovement()->IsFalling())
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
@@ -140,7 +174,7 @@ void ACVBaseCharacter::MoveForward(float Value)
 	if (CVBaseCharacterMovementComponent->IsInCover() && !FMath::IsNearlyZero(Value))
 	{
 		// If character is covering, move along CharacterToNormal
-		FVector CharacterToNormal = FVector::CrossProduct(MovementCoverDescription.ForwardImpactNormal, GetActorUpVector());
+		FVector CharacterToNormal = FVector::CrossProduct(CenterUpdateCoverDescription.HitNormal, GetActorUpVector());
 
 		// Calculate the dot product between character's forward vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(GetActorForwardVector(), CharacterToNormal.GetSafeNormal2D());
