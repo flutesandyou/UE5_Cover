@@ -88,7 +88,7 @@ bool UCoverDetectionComponent::DetectCover(OUT FCoverDescription& CoverDescripti
 }
 
 
-bool UCoverDetectionComponent::UpdateCover(const FName& MoveDirection, OUT FUpdateCoverDescription& UpdateCoverDescription)
+bool UCoverDetectionComponent::UpdateCover(OUT FUpdateCoverDescription& UpdateCoverDescription)
 {
 	FHitResult HitResult;
 	
@@ -97,15 +97,6 @@ bool UCoverDetectionComponent::UpdateCover(const FName& MoveDirection, OUT FUpda
 	float LineTraceLength = 100.0f;
 
 	FVector StartPosition = CachedCharacterOwner->GetActorLocation();
-	
-	if (MoveDirection == FName("Right"))
-	{
-		StartPosition.Y -= 40.0f;
-	}
-	else if (MoveDirection == FName("Left"))
-	{
-		StartPosition.Y += 40.0f;
-	}
 	
 	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
 
@@ -128,6 +119,47 @@ bool UCoverDetectionComponent::UpdateCover(const FName& MoveDirection, OUT FUpda
 	UpdateCoverDescription.HitResult = HitResult;
 	UpdateCoverDescription.HitNormal = HitResult.ImpactNormal;
 	UpdateCoverDescription.Direction = FVector::CrossProduct(UpdateCoverDescription.HitNormal, FVector::UpVector).GetSafeNormal2D();
+
+	return true;
+}
+
+
+bool UCoverDetectionComponent::UpdateCoverSide(const FName& MoveDirection)
+{
+	FHitResult HitResult;
+
+	FVector LineTraceDirection = CachedCharacterOwner->GetActorForwardVector();
+
+	float LineTraceLength = 100.0f;
+
+	FVector StartPosition = CachedCharacterOwner->GetActorLocation();
+
+	if (MoveDirection == FName("Right"))
+	{
+		StartPosition.Y -= 40.0f;
+	}
+	else if (MoveDirection == FName("Left"))
+	{
+		StartPosition.Y += 40.0f;
+	}
+
+	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetOwner());
+
+#if ENABLE_DRAW_DEBUG
+	UDebugSubsystem* DebugSubsystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+	bool bIsDebugEnabled = DebugSubsystem->IsCategoryEnabled(DebugCategoryCoverDetection);
+#else
+	bool bIsDebugEnabled = false;
+#endif
+	float DrawTime = 2.0f;
+
+	if (!CVTraceUtils::CastLineTraceSingleByChannel(GetWorld(), HitResult, StartPosition, EndPosition, ECC_Covering, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
+	{
+		return false;
+	}
 
 	return true;
 }

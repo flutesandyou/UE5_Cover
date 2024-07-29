@@ -98,60 +98,42 @@ void ACVBaseCharacter::MoveRight(float Value)
 		float DotProduct = FVector::DotProduct(CharacterRight, CharacterToNormal);
 
 		FUpdateCoverDescription UpdateCoverDescription;
-		FUpdateCoverDescription CenterUpdateCoverDescription;
 
 		if (Value > 0.0f)
 		{
-			if (!CoverDetectionComponent->UpdateCover(FName("Right"), UpdateCoverDescription))	
+			if (!CoverDetectionComponent->UpdateCoverSide(FName("Right")))	
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
 				Value = 0.0f;
 			}
-			if (CoverDetectionComponent->UpdateCover(FName("Center"), CenterUpdateCoverDescription))
+			if (CoverDetectionComponent->UpdateCoverSide(FName("Right")))
 			{
-				GetBaseCharacterMovementComponent()->AddInputVector(CenterUpdateCoverDescription.Direction, false);
+				CoverDetectionComponent->UpdateCover(UpdateCoverDescription);
+				GetBaseCharacterMovementComponent()->AddInputVector(UpdateCoverDescription.Direction, false);
+				GetBaseCharacterMovementComponent()->AddInputVector(GetActorForwardVector(), false);
 			}
 		}
 
 
 		if (Value < 0.0f)
 		{
-			if (!CoverDetectionComponent->UpdateCover(FName("Left"), UpdateCoverDescription))
+			if (!CoverDetectionComponent->UpdateCoverSide(FName("Left")))
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
 				Value = 0.0f;
 			}
-			if (CoverDetectionComponent->UpdateCover(FName("Center"), CenterUpdateCoverDescription))
+			if (CoverDetectionComponent->UpdateCoverSide(FName("Left")))
 			{
-				GetBaseCharacterMovementComponent()->AddInputVector(-CenterUpdateCoverDescription.Direction, false);
+				CoverDetectionComponent->UpdateCover(UpdateCoverDescription);
+				GetBaseCharacterMovementComponent()->AddInputVector(-UpdateCoverDescription.Direction, false);
+				GetBaseCharacterMovementComponent()->AddInputVector(GetActorForwardVector(), false);
 			}
-		}
-
-
-		// Adjust the movement direction based on the dot product
-		if (DotProduct > 0)
-		{
-			// If character's right vector aligns with the cover surface direction, move right along the cover surface
-			if (Value > 0.0f)
-			{
-				//GetBaseCharacterMovementComponent()->AddInputVector(CenterUpdateCoverDescription.Direction, false);
-			}
-			else if (Value < 0.0f)
-			{
-				//GetBaseCharacterMovementComponent()->AddInputVector(-CenterUpdateCoverDescription.Direction, false);
-			}
-		}
-		else
-		{
-			// If character's right vector aligns opposite to the cover surface direction, move left along the cover surface
-			//GetBaseCharacterMovementComponent()->AddInputVector(UpdateCoverDescription.Direction, false);
-
 		}
 
 		FRotator CurrentRotation = GetActorRotation();
 		//FRotator CurrentRotation = GetActorForwardVector().ToOrientationRotator();
 
-		FRotator TargetRotation = FRotationMatrix::MakeFromX(CenterUpdateCoverDescription.HitNormal).Rotator();
+		FRotator TargetRotation = FRotationMatrix::MakeFromX(UpdateCoverDescription.HitNormal).Rotator();
 		TargetRotation.Yaw -= 180.0f;
 		float DeltaTime = GetWorld()->GetDeltaSeconds();
 		float InterpSpeed = 10.0f; // Adjust this value for smoother or faster interpolation
