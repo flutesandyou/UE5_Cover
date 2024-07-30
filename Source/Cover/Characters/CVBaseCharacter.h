@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "../Components/MovementComponents/CVBaseCharacterMovementComponent.h"
+#include "../Components/CoverDetectionComponent.h"
 #include "CVBaseCharacter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -44,7 +45,7 @@ protected:
 	float LowCoverMaxHeight = 125.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Covering")
-	bool IsCovering = false;
+	bool bIsInCover = false;
 
 public:
 	// Called every frame
@@ -65,4 +66,5 @@ public:
 private:
 	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
 	FMovementCoverDescription MovementCoverDescription;
+	FUpdateCoverDescription UpdateCoverDescription;
 };

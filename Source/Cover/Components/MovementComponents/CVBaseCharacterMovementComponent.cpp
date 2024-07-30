@@ -42,11 +42,6 @@ bool UCVBaseCharacterMovementComponent::IsTakeCover() const
 	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_TakeCover;
 }
 
-bool UCVBaseCharacterMovementComponent::IsInCover() const
-{
-    return bIsInCover;
-}
-
 void UCVBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 {
     switch (CustomMovementMode)

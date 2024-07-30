@@ -2,7 +2,6 @@
 
 
 #include "../Characters/CVBaseCharacter.h"
-#include "../Components/CoverDetectionComponent.h"
 #include "Curves/CurveVector.h"
 #include "UObject/ConstructorHelpers.h"
 #include <Kismet/KismetMathLibrary.h>
@@ -27,16 +26,6 @@ void ACVBaseCharacter::BeginPlay()
 void ACVBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (CVBaseCharacterMovementComponent->IsInCover())
-	{
-		IsCovering = true;
-		//CVBaseCharacterMovementComponent->bOrientRotationToMovement = true;
-	}
-	else if (!CVBaseCharacterMovementComponent->IsInCover())
-	{
-		IsCovering = false;
-	}
 }
 
 // Called to bind functionality to input
@@ -50,6 +39,7 @@ void ACVBaseCharacter::TryCover()
 	if (GetBaseCharacterMovementComponent()->IsInCover())
 	{
 		GetBaseCharacterMovementComponent()->DetachFromCover();
+		bIsInCover = false;
 	}
 	else if (!GetBaseCharacterMovementComponent()->IsInCover())
 	{
@@ -67,6 +57,7 @@ void ACVBaseCharacter::TryCover()
 			MovementCoverDescription.DownwardImpactPoint = CoverDescription.DownwardImpactPoint;
 
 			GetBaseCharacterMovementComponent()->AttachToCover(MovementCoverDescription);
+			bIsInCover = true;
 		}		
 	}
 	return;
@@ -97,7 +88,6 @@ void ACVBaseCharacter::MoveRight(float Value)
 		// Calculate the dot product between character's right vector and CharacterToNormal
 		float DotProduct = FVector::DotProduct(CharacterRight, CharacterToNormal);
 
-		FUpdateCoverDescription UpdateCoverDescription;
 
 		if (Value > 0.0f)
 		{

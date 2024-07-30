@@ -36,7 +36,7 @@ public:
 	void DetachFromCover();
 	bool IsTakeCover() const;
 	FORCEINLINE bool IsInLowCover() const { return bIsInLowCover; }
-	bool IsInCover() const;
+	FORCEINLINE bool IsInCover() const { return bIsInCover; }
 	virtual float GetMaxSpeed() const override;
 
 protected:
