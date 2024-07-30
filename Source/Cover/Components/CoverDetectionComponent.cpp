@@ -130,17 +130,18 @@ bool UCoverDetectionComponent::UpdateCoverSide(const FName& MoveDirection)
 
 	FVector LineTraceDirection = CachedCharacterOwner->GetActorForwardVector();
 
+	// TODO: make adjustable
 	float LineTraceLength = 100.0f;
 
 	FVector StartPosition = CachedCharacterOwner->GetActorLocation();
 
 	if (MoveDirection == FName("Right"))
 	{
-		StartPosition.Y -= 40.0f;
+		StartPosition = StartPosition + (CachedCharacterOwner->GetActorRightVector() * 40.0f);
 	}
 	else if (MoveDirection == FName("Left"))
 	{
-		StartPosition.Y += 40.0f;
+		StartPosition = StartPosition + (CachedCharacterOwner->GetActorRightVector() * -40.0f);
 	}
 
 	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
