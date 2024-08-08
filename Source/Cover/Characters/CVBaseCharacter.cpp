@@ -40,6 +40,7 @@ void ACVBaseCharacter::TryCover()
 	{
 		GetBaseCharacterMovementComponent()->DetachFromCover();
 		bIsInCover = false;
+		bMovedRight = true;
 	}
 	else if (!GetBaseCharacterMovementComponent()->IsInCover())
 	{
@@ -61,6 +62,11 @@ void ACVBaseCharacter::TryCover()
 		}		
 	}
 	return;
+}
+
+float ACVBaseCharacter::GetRightMovementSpeed()
+{
+	return GetVelocity().Dot(GetActorRightVector());
 }
 
 const FCoveringSettings& ACVBaseCharacter::GetCoveringSettings(float CoverHeight) const

@@ -61,10 +61,11 @@ public:
 	virtual void MoveForward(float Value);
 	virtual void TryCover();
 	FORCEINLINE bool GetMovedRight() const { return bMovedRight; }
+	float GetRightMovementSpeed();
 
 private:
 	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
 	FMovementCoverDescription MovementCoverDescription;
 	FUpdateCoverDescription UpdateCoverDescription;
-	bool bMovedRight;
+	bool bMovedRight = true;
 };

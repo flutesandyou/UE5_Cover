@@ -28,16 +28,15 @@ void UCVAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInCover = CharacterMovement->IsInCover();
 	bIsInLowCover = CharacterMovement->IsInLowCover();
 
-
-	FVector RightVector = CachedBaseCharacter->GetActorRightVector();
-	FVector Velocity = CachedBaseCharacter->GetVelocity();
-	bMovedRight = CachedBaseCharacter->GetMovedRight();
-
-	RightMovementSpeed = FVector::DotProduct(Velocity, RightVector);
-
-	if (GEngine)
+	if (bIsInCover || bIsInLowCover)
 	{
-		FString DebugMessage = FString::Printf(TEXT("Right Movement Speed: %.2f"), RightMovementSpeed);
-		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow, DebugMessage);
+		bMovedRight = CachedBaseCharacter->GetMovedRight();
+		RightMovementSpeed = CachedBaseCharacter->GetRightMovementSpeed();
+
+		if (GEngine)
+		{
+			FString DebugMessage = FString::Printf(TEXT("Right Movement Speed: %.2f"), RightMovementSpeed);
+			GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow, DebugMessage);
+		}
 	}
 }
