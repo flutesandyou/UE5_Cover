@@ -91,6 +91,7 @@ void ACVBaseCharacter::MoveRight(float Value)
 
 		if (Value > 0.0f)
 		{
+			bMovedRight = true;
 			if (!CoverDetectionComponent->UpdateCoverSide(FName("Right")))	
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
@@ -107,6 +108,7 @@ void ACVBaseCharacter::MoveRight(float Value)
 
 		if (Value < 0.0f)
 		{
+			bMovedRight = false;
 			if (!CoverDetectionComponent->UpdateCoverSide(FName("Left")))
 			{
 				// If TraceBool is false and Value is positive, set Value to 0
@@ -164,3 +166,4 @@ void ACVBaseCharacter::MoveForward(float Value)
 		}
 	}
 }
+

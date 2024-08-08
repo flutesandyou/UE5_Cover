@@ -29,6 +29,10 @@ protected:
 	bool bIsInLowCover = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	float CharSpeed = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	float RightMovementSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bMovedRight;
 
 private:
 	TWeakObjectPtr<class ACVBaseCharacter> CachedBaseCharacter;

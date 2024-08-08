@@ -56,15 +56,15 @@ public:
 
 
 	FORCEINLINE UCVBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return CVBaseCharacterMovementComponent; }
-	
+
 	virtual void MoveRight(float Value);
 	virtual void MoveForward(float Value);
 	virtual void TryCover();
-
-	void SlideCoverRight(float Value);
+	FORCEINLINE bool GetMovedRight() const { return bMovedRight; }
 
 private:
 	const FCoveringSettings& GetCoveringSettings(float LedgeHeight) const;
 	FMovementCoverDescription MovementCoverDescription;
 	FUpdateCoverDescription UpdateCoverDescription;
+	bool bMovedRight;
 };
