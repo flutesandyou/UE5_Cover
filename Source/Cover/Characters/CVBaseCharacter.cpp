@@ -56,7 +56,6 @@ void ACVBaseCharacter::TryCover()
 
 			MovementCoverDescription.ForwardImpactPoint = CoverDescription.ForwardImpactPoint;
 			MovementCoverDescription.DownwardImpactPoint = CoverDescription.DownwardImpactPoint;
-
 			GetBaseCharacterMovementComponent()->AttachToCover(MovementCoverDescription);
 			bIsInCover = true;
 		}		

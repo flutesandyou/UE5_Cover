@@ -44,6 +44,8 @@ bool UCVBaseCharacterMovementComponent::IsTakeCover() const
 
 void UCVBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 {
+    Super::PhysCustom(DeltaTime, Iterations);
+
     switch (CustomMovementMode)
     {
     case (uint8)ECustomMovementMode::CMOVE_TakeCover:
@@ -54,9 +56,8 @@ void UCVBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 	default:
 		break;
 	}
-
-	Super::PhysCustom(DeltaTime, Iterations);
 }
+
 
 void UCVBaseCharacterMovementComponent::PhysTakeCover(float DeltaTime, int32 Iterations)
 {
@@ -89,7 +90,7 @@ void UCVBaseCharacterMovementComponent::PhysTakeCover(float DeltaTime, int32 Ite
     if (!bIsCoverTimerStarted)
     {
         CoverStartTime = World->GetTimeSeconds();
-        CoverDuration = Distance * DeltaTime; // Set the duration based on your requirement
+        CoverDuration = Distance * DeltaTime * 0.75; // Set the duration based on your requirement
         bIsCoverTimerStarted = true;
     }
 
@@ -121,13 +122,20 @@ void UCVBaseCharacterMovementComponent::PhysInCover(float DeltaTime, int32 Itera
 
 void UCVBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
-	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 
-    if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_TakeCover)
+    Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+
+    //UE_LOG(LogTemp, Warning, TEXT("Movement mode changed from %d to %d"), PreviousMovementMode, MovementMode);
+
+    if (MovementMode == MOVE_Custom)
     {
-    }
-    if (PreviousMovementMode == MOVE_Walking)
-    {
+        //UE_LOG(LogTemp, Warning, TEXT("Character is crouching: %s"), IsCrouching() ? TEXT("True") : TEXT("False"));
+
+        if (bWantsToCrouch && !IsCrouching())
+        {
+            //UE_LOG(LogTemp, Warning, TEXT("Reapplying crouch"));
+            Crouch(false);
+        }
     }
 }
 

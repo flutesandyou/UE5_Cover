@@ -28,6 +28,12 @@ void UCVAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInCover = CharacterMovement->IsInCover();
 	bIsInLowCover = CharacterMovement->IsInLowCover();
 
+	if (CachedBaseCharacter->IsPlayerControlled() && GEngine) // Ensure the character is the one you control
+	{
+		FString DebugMessage = FString::Printf(TEXT("bIsCrouching: %s"), bIsCrouching ? TEXT("True") : TEXT("False"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow, DebugMessage);
+	}
+
 	if (bIsInCover || bIsInLowCover)
 	{
 		bMovedRight = CachedBaseCharacter->GetMovedRight();
